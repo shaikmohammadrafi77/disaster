@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources - Disaster Relief</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/disaster-style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i data-feather="shield" class="me-2"></i>
+                Disaster Relief Command Center
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i data-feather="home" class="me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('disasters') }}">
+                            <i data-feather="alert-triangle" class="me-1"></i>Disasters
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('resources') }}">
+                            <i data-feather="package" class="me-1"></i>Resources
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('allocations') }}">
+                            <i data-feather="truck" class="me-1"></i>Allocations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('centers') }}">
+                            <i data-feather="map-pin" class="me-1"></i>Centers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('map_view') }}">
+                            <i data-feather="map" class="me-1"></i>Map
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2>
+                            <i data-feather="package" class="me-2 text-info"></i>
+                            Resource Management
+                        </h2>
+                        <p class="text-muted mb-0">Monitor and manage disaster relief resources</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-success" onclick="showAddResourceModal()">
+                            <i data-feather="plus" class="me-2"></i>
+                            Add Resource
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card resource-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-success text-white rounded-circle me-3">
+                            <i data-feather="droplet"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="foodResources">0</h5>
+                            <p class="card-text text-muted mb-0">Food & Water</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card resource-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-danger text-white rounded-circle me-3">
+                            <i data-feather="heart"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="medicalResources">0</h5>
+                            <p class="card-text text-muted mb-0">Medical</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card resource-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-warning text-white rounded-circle me-3">
+                            <i data-feather="home"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="shelterResources">0</h5>
+                            <p class="card-text text-muted mb-0">Shelter</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card resource-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-info text-white rounded-circle me-3">
+                            <i data-feather="users"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="personnelResources">0</h5>
+                            <p class="card-text text-muted mb-0">Personnel</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <label for="categoryFilter" class="form-label">Category</label>
+                                <select class="form-select" id="categoryFilter" onchange="loadResources()">
+                                    <option value="all">All Categories</option>
+                                    <option value="food">Food & Water</option>
+                                    <option value="medical">Medical</option>
+                                    <option value="shelter">Shelter</option>
+                                    <option value="personnel">Personnel</option>
+                                    <option value="equipment">Equipment</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="availabilityFilter" class="form-label">Availability</label>
+                                <select class="form-select" id="availabilityFilter" onchange="loadResources()">
+                                    <option value="all">All Resources</option>
+                                    <option value="available">Available</option>
+                                    <option value="low">Low Stock</option>
+                                    <option value="depleted">Depleted</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button class="btn btn-outline-primary w-100" onclick="loadResources()">
+                                    <i data-feather="refresh-cw" class="me-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="grid" class="me-2"></i>
+                            Resources Inventory
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="resourcesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Category</th>
+                                        <th>Total Available</th>
+                                        <th>Allocated</th>
+                                        <th>Available</th>
+                                        <th>Utilization</th>
+                                        <th>Cost/Unit</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resourcesTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Load resources on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResources();
+        });
+
+        // Load resources from API
+        async function loadResources() {
+            try {
+                const categoryFilter = document.getElementById('categoryFilter').value;
+                const availabilityFilter = document.getElementById('availabilityFilter').value;
+                
+                let url = '/api/resources?';
+                if (categoryFilter !== 'all') url += `category=${categoryFilter}&`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch resources');
+                
+                const resources = await response.json();
+                
+                // Filter by availability if needed
+                let filteredResources = resources;
+                if (availabilityFilter !== 'all') {
+                    filteredResources = resources.filter(resource => {
+                        switch (availabilityFilter) {
+                            case 'available':
+                                return resource.available > 0;
+                            case 'low':
+                                return resource.available > 0 && resource.utilization_rate > 75;
+                            case 'depleted':
+                                return resource.available === 0;
+                            default:
+                                return true;
+                        }
+                    });
+                }
+                
+                displayResources(filteredResources);
+                updateResourceSummary(resources);
+                
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                document.getElementById('resourcesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <div class="alert alert-danger">
+                                <i data-feather="alert-circle" class="me-2"></i>
+                                Failed to load resources
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                feather.replace();
+            }
+        }
+
+        // Display resources in table
+        function displayResources(resources) {
+            const tbody = document.getElementById('resourcesTableBody');
+            
+            if (!resources || resources.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i data-feather="package" class="mb-3" style="width: 48px; height: 48px;"></i>
+                            <h5>No resources found</h5>
+                            <p>No resources match your current filters</p>
+                        </td>
+                    </tr>
+                `;
+                feather.replace();
+                return;
+            }
+            
+            const html = resources.map(resource => `
+                <tr class="${getResourceRowClass(resource)}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i data-feather="${getCategoryIcon(resource.category)}" class="text-${getCategoryColor(resource.category)}"></i>
+                            </div>
+                            <div>
+                                <strong>${resource.name}</strong>
+                                <small class="d-block text-muted">${resource.unit}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-${getCategoryColor(resource.category)}">${resource.category.charAt(0).toUpperCase() + resource.category.slice(1)}</span>
+                    </td>
+                    <td>${formatNumber(resource.total_available)}</td>
+                    <td>${formatNumber(resource.allocated)}</td>
+                    <td>
+                        <span class="badge bg-${getAvailabilityBadgeClass(resource.available, resource.total_available)}">
+                            ${formatNumber(resource.available)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 60px; height: 8px;">
+                                <div class="progress-bar bg-${getUtilizationColor(resource.utilization_rate)}" 
+                                     style="width: ${Math.min(resource.utilization_rate, 100)}%"></div>
+                            </div>
+                            <small>${resource.utilization_rate}%</small>
+                        </div>
+                    </td>
+                    <td>$${resource.cost_per_unit.toFixed(2)}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="allocateResource(${resource.id})" 
+                                    ${resource.available === 0 ? 'disabled' : ''}>
+                                <i data-feather="send" class="me-1"></i>
+                                Allocate
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="manageResource(${resource.id})">
+                                <i data-feather="edit" class="me-1"></i>
+                                Manage
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            tbody.innerHTML = html;
+            feather.replace();
+        }
+
+        // Update resource summary cards
+        function updateResourceSummary(resources) {
+            const summary = resources.reduce((acc, resource) => {
+                if (!acc[resource.category]) {
+                    acc[resource.category] = 0;
+                }
+                acc[resource.category] += resource.available;
+                return acc;
+            }, {});
+            
+            document.getElementById('foodResources').textContent = formatNumber(summary.food || 0);
+            document.getElementById('medicalResources').textContent = formatNumber(summary.medical || 0);
+            document.getElementById('shelterResources').textContent = formatNumber(summary.shelter || 0);
+            document.getElementById('personnelResources').textContent = formatNumber(summary.personnel || 0);
+        }
+
+        // Helper functions
+        function getCategoryIcon(category) {
+            const icons = {
+                'food': 'droplet',
+                'medical': 'heart',
+                'shelter': 'home',
+                'personnel': 'users',
+                'equipment': 'tool'
+            };
+            return icons[category] || 'package';
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                'food': 'success',
+                'medical': 'danger',
+                'shelter': 'warning',
+                'personnel': 'info',
+                'equipment': 'secondary'
+            };
+            return colors[category] || 'primary';
+        }
+
+        function getResourceRowClass(resource) {
+            if (resource.available === 0) return 'table-danger';
+            if (resource.utilization_rate > 75) return 'table-warning';
+            return '';
+        }
+
+        function getAvailabilityBadgeClass(available, total) {
+            const ratio = available / total;
+            if (ratio === 0) return 'danger';
+            if (ratio < 0.25) return 'warning';
+            return 'success';
+        }
+
+        function getUtilizationColor(rate) {
+            if (rate < 50) return 'success';
+            if (rate < 75) return 'warning';
+            return 'danger';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        // Navigation functions
+        function allocateResource(id) {
+            window.location.href = `/allocations?resource_id=${id}`;
+        }
+
+        function manageResource(id) {
+            // In a real app, this would show resource management modal
+            console.log('Manage resource:', id);
+        }
+
+        function showAddResourceModal() {
+            // In a real app, this would show a modal to add new resource
+            alert('Add resource functionality would be implemented here');
+        }
+    </script>
+</body>
+</html>

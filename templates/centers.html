@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relief Centers - Disaster Relief</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/disaster-style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i data-feather="shield" class="me-2"></i>
+                Disaster Relief Command Center
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i data-feather="home" class="me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('disasters') }}">
+                            <i data-feather="alert-triangle" class="me-1"></i>Disasters
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('resources') }}">
+                            <i data-feather="package" class="me-1"></i>Resources
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('allocations') }}">
+                            <i data-feather="truck" class="me-1"></i>Allocations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('centers') }}">
+                            <i data-feather="map-pin" class="me-1"></i>Centers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('map_view') }}">
+                            <i data-feather="map" class="me-1"></i>Map
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2>
+                            <i data-feather="map-pin" class="me-2 text-success"></i>
+                            Relief Centers
+                        </h2>
+                        <p class="text-muted mb-0">Manage relief centers and their capacity</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-success" onclick="showAddCenterModal()">
+                            <i data-feather="plus" class="me-2"></i>
+                            Add Center
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Type Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card center-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-success text-white rounded-circle me-3">
+                            <i data-feather="home"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="shelterCenters">0</h5>
+                            <p class="card-text text-muted mb-0">Shelter Centers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card center-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-danger text-white rounded-circle me-3">
+                            <i data-feather="heart"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="medicalCenters">0</h5>
+                            <p class="card-text text-muted mb-0">Medical Centers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card center-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-info text-white rounded-circle me-3">
+                            <i data-feather="package"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="distributionCenters">0</h5>
+                            <p class="card-text text-muted mb-0">Distribution Centers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card center-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-warning text-white rounded-circle me-3">
+                            <i data-feather="activity"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="totalCapacity">0</h5>
+                            <p class="card-text text-muted mb-0">Total Capacity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <label for="typeFilter" class="form-label">Type</label>
+                                <select class="form-select" id="typeFilter" onchange="loadCenters()">
+                                    <option value="all">All Types</option>
+                                    <option value="shelter">Shelter</option>
+                                    <option value="medical">Medical</option>
+                                    <option value="distribution">Distribution</option>
+                                    <option value="emergency">Emergency</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter" onchange="loadCenters()">
+                                    <option value="all">All Statuses</option>
+                                    <option value="operational">Operational</option>
+                                    <option value="full">Full Capacity</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="capacityFilter" class="form-label">Capacity</label>
+                                <select class="form-select" id="capacityFilter" onchange="loadCenters()">
+                                    <option value="all">All Capacities</option>
+                                    <option value="available">Available Space</option>
+                                    <option value="high">High Occupancy (>75%)</option>
+                                    <option value="full">At Capacity</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-outline-primary w-100" onclick="loadCenters()">
+                                    <i data-feather="refresh-cw" class="me-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Centers Grid -->
+        <div class="row" id="centersContainer">
+            <div class="col-12 text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Load centers on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCenters();
+        });
+
+        // Load centers from API
+        async function loadCenters() {
+            try {
+                const typeFilter = document.getElementById('typeFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                
+                let url = '/api/centers?';
+                if (typeFilter !== 'all') url += `type=${typeFilter}&`;
+                if (statusFilter !== 'all') url += `status=${statusFilter}&`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch centers');
+                
+                const centers = await response.json();
+                
+                // Apply capacity filter
+                const capacityFilter = document.getElementById('capacityFilter').value;
+                let filteredCenters = centers;
+                if (capacityFilter !== 'all') {
+                    filteredCenters = centers.filter(center => {
+                        const occupancyRate = center.occupancy_rate;
+                        switch (capacityFilter) {
+                            case 'available':
+                                return occupancyRate < 100;
+                            case 'high':
+                                return occupancyRate > 75 && occupancyRate < 100;
+                            case 'full':
+                                return occupancyRate >= 100;
+                            default:
+                                return true;
+                        }
+                    });
+                }
+                
+                displayCenters(filteredCenters);
+                updateCenterSummary(centers);
+                
+            } catch (error) {
+                console.error('Error loading centers:', error);
+                document.getElementById('centersContainer').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <i data-feather="alert-circle" class="me-2"></i>
+                            Failed to load centers
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        // Display centers in grid
+        function displayCenters(centers) {
+            const container = document.getElementById('centersContainer');
+            
+            if (!centers || centers.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i data-feather="map-pin" class="mb-3" style="width: 48px; height: 48px;"></i>
+                        <h5>No centers found</h5>
+                        <p>No centers match your current filters</p>
+                    </div>
+                `;
+                feather.replace();
+                return;
+            }
+            
+            const html = centers.map(center => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 center-card ${getCenterCardClass(center.occupancy_rate)}" onclick="viewCenter(${center.id})">
+                        <div class="card-header bg-transparent border-bottom-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="${getCenterIcon(center.center_type)}" class="me-2 text-${getCenterColor(center.center_type)}"></i>
+                                    <span class="badge bg-${getCenterColor(center.center_type)}">${center.center_type.charAt(0).toUpperCase() + center.center_type.slice(1)}</span>
+                                </div>
+                                <span class="badge bg-${getStatusBadgeClass(center.status)}">${center.status.charAt(0).toUpperCase() + center.status.slice(1)}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">${center.name}</h6>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">Capacity Utilization</small>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>${center.current_occupancy}/${center.capacity}</span>
+                                    <span class="fw-bold">${center.occupancy_rate}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-${getOccupancyColor(center.occupancy_rate)}" 
+                                         style="width: ${Math.min(center.occupancy_rate, 100)}%"></div>
+                                </div>
+                            </div>
+                            
+                            ${center.contact_person ? `
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i data-feather="user" class="me-1" style="width: 14px; height: 14px;"></i>
+                                        ${center.contact_person}
+                                    </small>
+                                </div>
+                            ` : ''}
+                            
+                            ${center.phone ? `
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i data-feather="phone" class="me-1" style="width: 14px; height: 14px;"></i>
+                                        ${center.phone}
+                                    </small>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i data-feather="map-pin" class="me-1" style="width: 14px; height: 14px;"></i>
+                                    ${center.latitude.toFixed(4)}, ${center.longitude.toFixed(4)}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-sm btn-outline-primary w-100" onclick="event.stopPropagation(); allocateToCenter(${center.id})">
+                                        <i data-feather="package" class="me-1"></i>
+                                        Allocate
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-sm btn-outline-info w-100" onclick="event.stopPropagation(); viewOnMap(${center.latitude}, ${center.longitude})">
+                                        <i data-feather="map" class="me-1"></i>
+                                        Map
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+            feather.replace();
+        }
+
+        // Update center summary
+        function updateCenterSummary(centers) {
+            const summary = centers.reduce((acc, center) => {
+                if (!acc[center.center_type]) {
+                    acc[center.center_type] = 0;
+                }
+                acc[center.center_type] += 1;
+                acc.totalCapacity = (acc.totalCapacity || 0) + center.capacity;
+                return acc;
+            }, {});
+            
+            document.getElementById('shelterCenters').textContent = summary.shelter || 0;
+            document.getElementById('medicalCenters').textContent = summary.medical || 0;
+            document.getElementById('distributionCenters').textContent = summary.distribution || 0;
+            document.getElementById('totalCapacity').textContent = formatNumber(summary.totalCapacity || 0);
+        }
+
+        // Helper functions
+        function getCenterIcon(type) {
+            const icons = {
+                'shelter': 'home',
+                'medical': 'heart',
+                'distribution': 'package',
+                'emergency': 'alert-triangle'
+            };
+            return icons[type] || 'map-pin';
+        }
+
+        function getCenterColor(type) {
+            const colors = {
+                'shelter': 'success',
+                'medical': 'danger',
+                'distribution': 'info',
+                'emergency': 'warning'
+            };
+            return colors[type] || 'primary';
+        }
+
+        function getCenterCardClass(occupancyRate) {
+            if (occupancyRate >= 100) return 'border-danger';
+            if (occupancyRate > 75) return 'border-warning';
+            return '';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'operational': 'success',
+                'full': 'warning',
+                'offline': 'danger'
+            };
+            return classes[status] || 'secondary';
+        }
+
+        function getOccupancyColor(rate) {
+            if (rate < 50) return 'success';
+            if (rate < 75) return 'warning';
+            return 'danger';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        // Navigation and action functions
+        function viewCenter(id) {
+            // In a real app, this would show detailed center view
+            console.log('View center:', id);
+        }
+
+        function allocateToCenter(id) {
+            window.location.href = `/allocations?center_id=${id}`;
+        }
+
+        function viewOnMap(lat, lng) {
+            window.location.href = `/map?center=${lat},${lng}&zoom=12`;
+        }
+
+        function showAddCenterModal() {
+            // In a real app, this would show a modal to add new center
+            alert('Add center functionality would be implemented here');
+        }
+    </script>
+</body>
+</html>

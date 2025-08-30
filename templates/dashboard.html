@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Relief Command Center</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/disaster-style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i data-feather="shield" class="me-2"></i>
+                Disaster Relief Command Center
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('dashboard') }}">
+                            <i data-feather="home" class="me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('disasters') }}">
+                            <i data-feather="alert-triangle" class="me-1"></i>Disasters
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('resources') }}">
+                            <i data-feather="package" class="me-1"></i>Resources
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('allocations') }}">
+                            <i data-feather="truck" class="me-1"></i>Allocations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('centers') }}">
+                            <i data-feather="map-pin" class="me-1"></i>Centers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('map_view') }}">
+                            <i data-feather="map" class="me-1"></i>Map
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-warning me-3" id="alertBadge">
+                        <i data-feather="bell" class="me-1"></i>
+                        <span id="alertCount">0</span> Alerts
+                    </span>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i data-feather="user"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i data-feather="settings" class="me-2"></i>Settings</a></li>
+                            <li><a class="dropdown-item" href="#"><i data-feather="log-out" class="me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Alert Banner -->
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="emergencyAlert" style="display: none;">
+            <div class="d-flex align-items-center">
+                <i data-feather="alert-circle" class="me-3 text-danger" style="width: 24px; height: 24px;"></i>
+                <div>
+                    <strong>Emergency Alert:</strong>
+                    <span id="alertMessage">High priority resource allocation needed</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-danger text-white rounded-circle me-3">
+                            <i data-feather="alert-triangle"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="activeDisasters">0</h5>
+                            <p class="card-text text-muted mb-0">Active Disasters</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-warning text-white rounded-circle me-3">
+                            <i data-feather="users"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="affectedPopulation">0</h5>
+                            <p class="card-text text-muted mb-0">People Affected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-info text-white rounded-circle me-3">
+                            <i data-feather="clock"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="pendingAllocations">0</h5>
+                            <p class="card-text text-muted mb-0">Pending Allocations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="stat-icon bg-success text-white rounded-circle me-3">
+                            <i data-feather="map-pin"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" id="operationalCenters">0</h5>
+                            <p class="card-text text-muted mb-0">Operational Centers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Recent Disasters -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent border-bottom-0">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="alert-triangle" class="me-2 text-danger"></i>
+                            Recent Disasters
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentDisasters">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Allocation Status -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent border-bottom-0">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="truck" class="me-2 text-info"></i>
+                            Recent Allocations
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentAllocations">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-transparent border-bottom-0">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="zap" class="me-2 text-primary"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-danger w-100" onclick="showCreateDisasterModal()">
+                                    <i data-feather="plus-circle" class="me-2"></i>
+                                    Report Disaster
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-info w-100" onclick="showAllocateResourceModal()">
+                                    <i data-feather="send" class="me-2"></i>
+                                    Allocate Resources
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-warning w-100" onclick="showPredictionModal()">
+                                    <i data-feather="trending-up" class="me-2"></i>
+                                    AI Predictions
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-success w-100" onclick="window.location.href='{{ url_for('map_view') }}'">
+                                    <i data-feather="map" class="me-2"></i>
+                                    View Map
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Prediction Modal -->
+    <div class="modal fade" id="predictionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i data-feather="trending-up" class="me-2"></i>
+                        AI Resource Predictions
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="disasterSelect" class="form-label">Select Disaster</label>
+                        <select class="form-select" id="disasterSelect">
+                            <option value="">Select a disaster...</option>
+                        </select>
+                    </div>
+                    <div id="predictionResults" style="display: none;">
+                        <h6>Predicted Resource Needs:</h6>
+                        <div id="predictionContent"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="generatePrediction()">
+                        <i data-feather="cpu" class="me-2"></i>
+                        Generate Prediction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            loadDisasterOptions();
+            
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+    </script>
+</body>
+</html>

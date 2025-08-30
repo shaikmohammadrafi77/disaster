@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydration Tracker - Stay Hydrated</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="header-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h1 class="brand-title">
+                            <i data-feather="droplet" class="brand-icon"></i>
+                            Hydration Tracker
+                        </h1>
+                        <p class="brand-subtitle">Stay hydrated, stay healthy</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container main-content">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Progress Card -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card progress-card">
+                        <div class="card-body text-center">
+                            <div class="progress-circle-container">
+                                <div class="progress-circle" id="progressCircle">
+                                    <div class="progress-text">
+                                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                                        <small class="progress-label">Daily Goal</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stats-row mt-3">
+                                <div class="stat-item">
+                                    <span class="stat-value" id="totalIntake">0</span>
+                                    <span class="stat-label">ml Today</span>
+                                </div>
+                                <div class="stat-divider"></div>
+                                <div class="stat-item">
+                                    <span class="stat-value">2000</span>
+                                    <span class="stat-label">ml Goal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Log Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card quick-log-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i data-feather="plus-circle" class="title-icon"></i>
+                                Log Water Intake
+                            </h5>
+                            
+                            <!-- Quick Buttons -->
+                            <div class="quick-buttons mb-3">
+                                <button class="btn btn-quick" onclick="setAmount(250)">
+                                    <i data-feather="coffee"></i>
+                                    250ml
+                                </button>
+                                <button class="btn btn-quick" onclick="setAmount(500)">
+                                    <i data-feather="droplet"></i>
+                                    500ml
+                                </button>
+                                <button class="btn btn-quick" onclick="setAmount(750)">
+                                    <i data-feather="droplet"></i>
+                                    750ml
+                                </button>
+                            </div>
+
+                            <!-- Custom Amount Form -->
+                            <form method="POST" action="{{ url_for('log_water') }}" class="custom-form">
+                                <div class="input-group">
+                                    <input type="number" 
+                                           class="form-control" 
+                                           name="amount" 
+                                           id="waterAmount"
+                                           placeholder="Enter amount in ml" 
+                                           min="1" 
+                                           max="2000"
+                                           required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i data-feather="plus"></i>
+                                        Log Water
+                                    </button>
+                                </div>
+                                <small class="form-text">Enter amount between 1-2000ml</small>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Period Toggle -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="period-toggle">
+                        <button class="btn btn-period active" data-period="today">Today</button>
+                        <button class="btn btn-period" data-period="week">This Week</button>
+                        <button class="btn btn-period" data-period="month">This Month</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card history-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i data-feather="clock" class="title-icon"></i>
+                                <span id="historyTitle">Today's History</span>
+                            </h5>
+                            
+                            <div id="historyContent">
+                                <div class="empty-state">
+                                    <i data-feather="droplet" class="empty-icon"></i>
+                                    <p>No water intake logged yet</p>
+                                    <small>Start logging your water intake above!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData('today');
+        });
+    </script>
+</body>
+</html>
